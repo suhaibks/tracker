@@ -1,0 +1,7 @@
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#111827;color:#fff}
+.container{max-width:1100px;margin:auto;padding:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.card,form,#history>div{background:#1f2937;padding:15px;border-radius:12px;margin-bottom:16px}
+input,textarea,button{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #555}
+button{background:#2563eb;color:#fff;border:none;cursor:pointer}
+@media(min-width:900px){form{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}form h2,form button,textarea{grid-column:1/-1}}
