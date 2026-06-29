@@ -1,12 +1,1382 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WeightPath</title>
+  <title>Sugar Diet Tracker</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --panel2:#1f2937;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --border:#334155;
+      --chip:#0b1220;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,#020617 0%, #0f172a 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:24px;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+    h1{margin:0;font-size:clamp(28px,4vw,40px)}
+    .subtitle{color:var(--muted);margin-top:6px}
+    .top-actions{display:flex;gap:10px;flex-wrap:wrap}
+    button, input, select, textarea{
+      border:1px solid var(--border);
+      background:#0b1220;
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 14px;
+      font:inherit;
+      outline:none;
+    }
+    button{cursor:pointer}
+    button.primary{background:linear-gradient(135deg,#0ea5e9,#22c55e);border:none;color:#fff;font-weight:700}
+    button.danger{background:#3f1d1d;border-color:#7f1d1d}
+    button.ghost{background:transparent}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:16px;
+    }
+    .card{
+      background:rgba(17,24,39,.9);
+      border:1px solid var(--border);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.2);
+    }
+    .stats{grid-column:span 12; display:grid; grid-template-columns:repeat(4,1fr); gap:16px}
+    .stat h3{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
+    .stat .value{font-size:28px;font-weight:800}
+    .stat .note{color:var(--muted);font-size:12px;margin-top:6px}
+    .main{grid-column:span 7}
+    .side{grid-column:span 5}
+    .section-title{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+      margin:0 0 14px 0;
+    }
+    .section-title h2{margin:0;font-size:20px}
+    .section-title span{color:var(--muted);font-size:13px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .form-grid .full{grid-column:1 / -1}
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px}
+    .input-group{display:flex;flex-direction:column}
+    textarea{min-height:88px;resize:vertical}
+    .row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px 0}
+    .tab{padding:10px 14px;border-radius:999px;background:#0b1220;border:1px solid var(--border);color:var(--muted)}
+    .tab.active{background:rgba(56,189,248,.15);color:#dff6ff;border-color:#1d4ed8}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .entry{
+      background:var(--panel2);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+    }
+    .entry-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .entry h4{margin:0 0 4px 0;font-size:16px}
+    .meta{color:var(--muted);font-size:12px}
+    .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .badge{padding:5px 9px;border-radius:999px;background:var(--chip);border:1px solid var(--border);font-size:12px;color:#cbd5e1}
+    .badge.good{border-color:#14532d;color:#bbf7d0}
+    .badge.warn{border-color:#78350f;color:#fde68a}
+    .badge.bad{border-color:#7f1d1d;color:#fecaca}
+    .entry-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .entry-actions button{padding:8px 10px;border-radius:10px;font-size:12px}
+    .chart-box{height:280px;display:flex;align-items:flex-end;gap:10px;padding:10px 0 0}
+    .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+    .bar{width:100%;max-width:46px;min-height:6px;border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,#38bdf8,#2563eb);transition:height .2s ease}
+    .bar-label{font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+    .small{font-size:12px;color:var(--muted)}
+    .progress{
+      width:100%;height:12px;border-radius:999px;background:#0b1220;border:1px solid var(--border);overflow:hidden;
+    }
+    .progress > div{height:100%;background:linear-gradient(90deg,#22c55e,#38bdf8)}
+    .footer-note{color:var(--muted);font-size:12px;margin-top:12px}
+    .empty{color:var(--muted);text-align:center;padding:22px;border:1px dashed var(--border);border-radius:18px}
+    @media (max-width: 950px){
+      .main,.side{grid-column:span 12}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width: 640px){
+      .wrap{padding:14px}
+      .stats{grid-template-columns:1fr}
+      .form-grid{grid-template-columns:1fr}
+      .chart-box{height:240px;gap:6px}
+      .bar{max-width:30px}
+    }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
-</body>
-</html>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1>Sugar Diet Tracker</h1>
+        <div class="subtitle">Track sugar-free streaks, meals, exercise, and weight in one place.</div>
+      </div>
+      <div class="top-actions">
+        <button class="ghost" id="exportBtn">Export Data</button>
+        <label for="importFile" style="margin:0">
+          <span class="ghost" style="display:inline-block;padding:12px 14px;border:1px solid var(--border);border-radius:14px;cursor:pointer;background:transparent">Import Data</span>
+          <input id="importFile" type="file" accept="application/json" hidden />
+        </label>
+        <button class="danger" id="resetBtn">Reset All</button>
+      </div>
+    </div><div class="grid">
+  <div class="card stats">
+    <div class="stat">
+      <h3>Sugar-Free Streak</h3>
+      <div class="value" id="streakValue">0</div>
+      <div class="note" id="streakNote">days since last sugar entry</div>
+    </div>
+    <div class="stat">
+      <h3>Today’s Sugar</h3>
+      <div class="value" id="todaySugarValue">0g</div>
+      <div class="note" id="todaySugarNote">based on today’s entries</div>
+    </div>
+    <div class="stat">
+      <h3>Weekly Exercise</h3>
+      <div class="value" id="weeklyExercise">0 min</div>
+      <div class="note">last 7 days</div>
+    </div>
+    <div class="stat">
+      <h3>Latest Weight</h3>
+      <div class="value" id="latestWeight">—</div>
+      <div class="note" id="weightNote">no weight logged yet</div>
+    </div>
+  </div>
+
+  <div class="card main">
+    <div class="section-title">
+      <h2>Log Today</h2>
+      <span>Add sugar, diet, exercise, or weight updates</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="diet">Diet</button>
+      <button class="tab" data-tab="exercise">Exercise</button>
+      <button class="tab" data-tab="weight">Weight</button>
+    </div>
+
+    <div id="formDiet" class="tabPanel">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="dietDate">Date</label>
+          <input id="dietDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="mealType">Meal Type</label>
+          <select id="mealType">
+            <option>Breakfast</option>
+            <option>Lunch</option>
+            <option>Dinner</option>
+            <option>Snack</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="sugarGrams">Sugar (g)</label>
+          <input id="sugarGrams" type="number" min="0" step="0.1" placeholder="e.g. 12" />
+        </div>
+        <div class="input-group full">
+          <label for="foodNotes">Food / Diet Notes</label>
+          <textarea id="foodNotes" placeholder="What did you eat? Any sugar cravings?"></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addDietBtn">Save Diet Entry</button>
+      </div>
+    </div>
+
+    <div id="formExercise" class="tabPanel" style="display:none">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="exerciseDate">Date</label>
+          <input id="exerciseDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="exerciseType">Exercise Type</label>
+          <input id="exerciseType" type="text" placeholder="Walk, gym, cycling..." />
+        </div>
+        <div class="input-group">
+          <label for="exerciseMinutes">Minutes</label>
+          <input id="exerciseMinutes" type="number" min="0" step="1" placeholder="e.g. 30" />
+        </div>
+        <div class="input-group full">
+          <label for="exerciseNotes">Exercise Notes</label>
+          <textarea id="exerciseNotes" placeholder="How intense was it? How did you feel?"></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addExerciseBtn">Save Exercise</button>
+      </div>
+    </div>
+
+    <div id="formWeight" class="tabPanel" style="display:none">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="weightDate">Date</label>
+          <input id="weightDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="weightValue">Weight</label>
+          <input id="weightValue" type="number" min="0" step="0.1" placeholder="e.g. 72.5" />
+        </div>
+        <div class="input-group">
+          <label for="weightUnit">Unit</label>
+          <select id="weightUnit">
+            <option value="kg">kg</option>
+            <option value="lb">lb</option>
+          </select>
+        </div>
+        <div class="input-group full">
+          <label for="weightNotes">Weight Notes</label>
+          <textarea id="weightNotes" placeholder="Morning weight, after workout, etc."></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addWeightBtn">Save Weight</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card side">
+    <div class="section-title">
+      <h2>Progress Overview</h2>
+      <span id="monthLabel"></span>
+    </div>
+    <div class="small" style="margin-bottom:10px">Sugar-free goal progress for the last 30 days</div>
+    <div class="progress"><div id="goalProgress" style="width:0%"></div></div>
+    <div class="small" style="margin-top:8px" id="goalText">0 / 30 sugar-free days</div>
+
+    <div style="margin-top:18px" class="section-title">
+      <h2>Weight Trend</h2>
+      <span>Last 7 entries</span>
+    </div>
+    <div class="chart-box" id="weightChart"></div>
+
+    <div style="margin-top:18px" class="section-title">
+      <h2>Recent Summary</h2>
+      <span>Last 5 logs</span>
+    </div>
+    <div class="list" id="recentSummary"></div>
+  </div>
+
+  <div class="card" style="grid-column:span 12">
+    <div class="section-title">
+      <h2>All Records</h2>
+      <span>Search, review, edit, or delete entries</span>
+    </div>
+    <div class="tabs" style="margin-bottom:16px">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="diet">Diet</button>
+      <button class="tab" data-filter="exercise">Exercise</button>
+      <button class="tab" data-filter="weight">Weight</button>
+    </div>
+    <div class="list" id="entriesList"></div>
+  </div>
+</div>
+
+<div class="footer-note">Data is saved only in this browser using localStorage. Use Export to back it up before clearing your browser.</div>
+
+  </div>  <script>
+    const STORAGE_KEY = "sugar_diet_tracker_v1";
+    const state = {
+      activeTab: "diet",
+      filter: "all",
+      data: loadData()
+    };
+
+    function todayISO(){
+      const d = new Date();
+      const off = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - off*60000);
+      return local.toISOString().slice(0,10);
+    }
+
+    function loadData(){
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { diet: [], exercise: [], weight: [] };
+      } catch {
+        return { diet: [], exercise: [], weight: [] };
+      }
+    }
+
+    function saveData(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+      renderAll();
+    }
+
+    function uid(){
+      return Math.random().toString(36).slice(2,9) + Date.now().toString(36);
+    }
+
+    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+    function getAllEntries(){
+      const all = [];
+      for (const item of state.data.diet) all.push({...item, kind:"diet"});
+      for (const item of state.data.exercise) all.push({...item, kind:"exercise"});
+      for (const item of state.data.weight) all.push({...item, kind:"weight"});
+      return all.sort((a,b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt||0) - (a.createdAt||0));
+    }
+
+    function daysBetween(a,b){
+      const da = new Date(a+"T00:00:00");
+      const db = new Date(b+"T00:00:00");
+      return Math.round((db - da) / 86400000);
+    }
+
+    function lastSugarDate(){
+      const sugarDates = state.data.diet.filter(x => Number(x.sugarGrams || 0) > 0).map(x => x.date).sort();
+      return sugarDates[sugarDates.length - 1] || null;
+    }
+
+    function sugarFreeStreak(){
+      const last = lastSugarDate();
+      if (!last) return Object.keys(groupByDateSugar()).length || 0;
+      return Math.max(0, daysBetween(last, todayISO()));
+    }
+
+    function groupByDateSugar(){
+      const m = {};
+      for (const e of state.data.diet){
+        m[e.date] = (m[e.date] || 0) + Number(e.sugarGrams || 0);
+      }
+      return m;
+    }
+
+    function weeklyExerciseMinutes(){
+      const t = new Date(todayISO()+"T00:00:00").getTime();
+      const weekAgo = t - 6*86400000;
+      return state.data.exercise.reduce((sum, e) => {
+        const ts = new Date(e.date+"T00:00:00").getTime();
+        if (ts >= weekAgo) sum += Number(e.minutes || 0);
+        return sum;
+      }, 0);
+    }
+
+    function latestWeight(){
+      const arr = [...state.data.weight].sort((a,b) => (b.date||"").localeCompare(a.date||"") || (b.createdAt||0)-(a.createdAt||0));
+      return arr[0] || null;
+    }
+
+    function sugarToday(){
+      const map = groupByDateSugar();
+      return Number(map[todayISO()] || 0);
+    }
+
+    function renderStats(){
+      const streak = sugarFreeStreak();
+      document.getElementById("streakValue").textContent = streak;
+      document.getElementById("streakNote").textContent = streak === 1 ? "day since last sugar entry" : "days since last sugar entry";
+      document.getElementById("todaySugarValue").textContent = sugarToday().toFixed(1).replace(/\.0$/,'') + "g";
+      document.getElementById("weeklyExercise").textContent = weeklyExerciseMinutes() + " min";
+      const w = latestWeight();
+      document.getElementById("latestWeight").textContent = w ? `${w.value} ${w.unit}` : "—";
+      document.getElementById("weightNote").textContent = w ? `logged on ${w.date}` : "no weight logged yet";
+
+      const sugarFreeDays = getSugarFreeDaysLast30();
+      const pct = Math.round((sugarFreeDays / 30) * 100);
+      document.getElementById("goalProgress").style.width = pct + "%";
+      document.getElementById("goalText").textContent = `${sugarFreeDays} / 30 sugar-free days`;
+      document.getElementById("monthLabel").textContent = new Date().toLocaleString(undefined, { month:"long", year:"numeric" });
+    }
+
+    function getSugarFreeDaysLast30(){
+      const map = groupByDateSugar();
+      let count = 0;
+      for (let i=0;i<30;i++){
+        const d = new Date();
+        d.setDate(d.getDate()-i);
+        const key = d.toISOString().slice(0,10);
+        if (!(Number(map[key] || 0) > 0)) count++;
+      }
+      return count;
+    }
+
+    function renderChart(){
+      const box = document.getElementById("weightChart");
+      box.innerHTML = "";
+      const arr = [...state.data.weight].sort((a,b) => (a.date||"").localeCompare(b.date||"") || (a.createdAt||0)-(b.createdAt||0)).slice(-7);
+      if (!arr.length){
+        box.innerHTML = '<div class="empty" style="width:100%">No weight entries yet</div>';
+        return;
+      }
+      const values = arr.map(x => Number(x.value)).filter(v => !Number.isNaN(v));
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = Math.max(max - min, 1);
+      arr.forEach(item => {
+        const val = Number(item.value);
+        const h = 24 + ((val - min) / range) * 160;
+        const wrap = document.createElement("div");
+        wrap.className = "bar-wrap";
+        wrap.innerHTML = `<div class="bar" style="height:${h}px" title="${item.date}: ${item.value} ${item.unit}"></div><div class="bar-label">${item.date.slice(5)}</div><div class="bar-label" style="color:#fff">${item.value} ${item.unit}</div>`;
+        box.appendChild(wrap);
+      });
+    }
+
+    function renderRecent(){
+      const list = document.getElementById("recentSummary");
+      list.innerHTML = "";
+      const items = getAllEntries().slice(0,5);
+      if (!items.length){
+        list.innerHTML = '<div class="empty">No logs yet</div>';
+        return;
+      }
+      for (const e of items){
+        const el = document.createElement("div");
+        el.className = "entry";
+        const title = e.kind === 'diet' ? `${e.mealType || 'Diet'} • ${e.sugarGrams || 0}g sugar` : e.kind === 'exercise' ? `${e.exerciseType || 'Exercise'} • ${e.minutes || 0} min` : `Weight • ${e.value} ${e.unit}`;
+        const detail = e.kind === 'diet' ? (e.notes || 'No notes') : e.kind === 'exercise' ? (e.notes || 'No notes') : (e.notes || 'No notes');
+        el.innerHTML = `<h4>${title}</h4><div class="meta">${e.date}</div><div class="meta" style="margin-top:6px">${escapeHtml(detail)}</div>`;
+        list.appendChild(el);
+      }
+    }
+
+    function renderEntries(){
+      const list = document.getElementById("entriesList");
+      list.innerHTML = "";
+      const items = getAllEntries().filter(e => state.filter === 'all' ? true : e.kind === state.filter);
+      if (!items.length){
+        list.innerHTML = '<div class="empty">No entries for this category</div>';
+        return;
+      }
+      items.forEach(e => {
+        const el = document.createElement("div");
+        el.className = "entry";
+        let badgeClass = e.kind === 'diet' ? (Number(e.sugarGrams || 0) > 15 ? 'warn' : 'good') : e.kind === 'exercise' ? 'good' : 'badge';
+        let headline = '';
+        let meta = '';
+        let badges = '';
+        if (e.kind === 'diet'){
+          headline = `${e.mealType || 'Diet'} • ${e.sugarGrams || 0}g sugar`;
+          meta = e.notes || 'No notes';
+          badges = `<span class="badge ${badgeClass}">${Number(e.sugarGrams || 0) > 15 ? 'High sugar' : 'Controlled sugar'}</span>`;
+        } else if (e.kind === 'exercise'){
+          headline = `${e.exerciseType || 'Exercise'} • ${e.minutes || 0} minutes`;
+          meta = e.notes || 'No notes';
+          badges = `<span class="badge good">Exercise logged</span>`;
+        } else {
+          headline = `Weight • ${e.value} ${e.unit}`;
+          meta = e.notes || 'No notes';
+          badges = `<span class="badge">Weight check</span>`;
+        }
+        el.innerHTML = `
+          <div class="entry-top">
+            <div>
+              <h4>${escapeHtml(headline)}</h4>
+              <div class="meta">${e.date} ${e.createdAt ? '• ' + new Date(e.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</div>
+              <div class="badges">${badges}</div>
+              <div class="meta" style="margin-top:8px">${escapeHtml(meta)}</div>
+            </div>
+            <div class="entry-actions">
+              <button onclick="editEntry('${e.kind}','${e.id}')">Edit</button>
+              <button class="danger" onclick="deleteEntry('${e.kind}','${e.id}')">Delete</button>
+            </div>
+          </<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sugar Diet Tracker</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --panel2:#1f2937;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --border:#334155;
+      --chip:#0b1220;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,#020617 0%, #0f172a 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:24px;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+    h1{margin:0;font-size:clamp(28px,4vw,40px)}
+    .subtitle{color:var(--muted);margin-top:6px}
+    .top-actions{display:flex;gap:10px;flex-wrap:wrap}
+    button, input, select, textarea{
+      border:1px solid var(--border);
+      background:#0b1220;
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 14px;
+      font:inherit;
+      outline:none;
+    }
+    button{cursor:pointer}
+    button.primary{background:linear-gradient(135deg,#0ea5e9,#22c55e);border:none;color:#fff;font-weight:700}
+    button.danger{background:#3f1d1d;border-color:#7f1d1d}
+    button.ghost{background:transparent}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:16px;
+    }
+    .card{
+      background:rgba(17,24,39,.9);
+      border:1px solid var(--border);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.2);
+    }
+    .stats{grid-column:span 12; display:grid; grid-template-columns:repeat(4,1fr); gap:16px}
+    .stat h3{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
+    .stat .value{font-size:28px;font-weight:800}
+    .stat .note{color:var(--muted);font-size:12px;margin-top:6px}
+    .main{grid-column:span 7}
+    .side{grid-column:span 5}
+    .section-title{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+      margin:0 0 14px 0;
+    }
+    .section-title h2{margin:0;font-size:20px}
+    .section-title span{color:var(--muted);font-size:13px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .form-grid .full{grid-column:1 / -1}
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px}
+    .input-group{display:flex;flex-direction:column}
+    textarea{min-height:88px;resize:vertical}
+    .row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px 0}
+    .tab{padding:10px 14px;border-radius:999px;background:#0b1220;border:1px solid var(--border);color:var(--muted)}
+    .tab.active{background:rgba(56,189,248,.15);color:#dff6ff;border-color:#1d4ed8}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .entry{
+      background:var(--panel2);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+    }
+    .entry-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .entry h4{margin:0 0 4px 0;font-size:16px}
+    .meta{color:var(--muted);font-size:12px}
+    .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .badge{padding:5px 9px;border-radius:999px;background:var(--chip);border:1px solid var(--border);font-size:12px;color:#cbd5e1}
+    .badge.good{border-color:#14532d;color:#bbf7d0}
+    .badge.warn{border-color:#78350f;color:#fde68a}
+    .badge.bad{border-color:#7f1d1d;color:#fecaca}
+    .entry-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .entry-actions button{padding:8px 10px;border-radius:10px;font-size:12px}
+    .chart-box{height:280px;display:flex;align-items:flex-end;gap:10px;padding:10px 0 0}
+    .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+    .bar{width:100%;max-width:46px;min-height:6px;border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,#38bdf8,#2563eb);transition:height .2s ease}
+    .bar-label{font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+    .small{font-size:12px;color:var(--muted)}
+    .progress{
+      width:100%;height:12px;border-radius:999px;background:#0b1220;border:1px solid var(--border);overflow:hidden;
+    }
+    .progress > div{height:100%;background:linear-gradient(90deg,#22c55e,#38bdf8)}
+    .footer-note{color:var(--muted);font-size:12px;margin-top:12px}
+    .empty{color:var(--muted);text-align:center;padding:22px;border:1px dashed var(--border);border-radius:18px}
+    @media (max-width: 950px){
+      .main,.side{grid-column:span 12}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width: 640px){
+      .wrap{padding:14px}
+      .stats{grid-template-columns:1fr}
+      .form-grid{grid-template-columns:1fr}
+      .chart-box{height:240px;gap:6px}
+      .bar{max-width:30px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1>Sugar Diet Tracker</h1>
+        <div class="subtitle">Track sugar-free streaks, meals, exercise, and weight in one place.</div>
+      </div>
+      <div class="top-actions">
+        <button class="ghost" id="exportBtn">Export Data</button>
+        <label for="importFile" style="margin:0">
+          <span class="ghost" style="display:inline-block;padding:12px 14px;border:1px solid var(--border);border-radius:14px;cursor:pointer;background:transparent">Import Data</span>
+          <input id="importFile" type="file" accept="application/json" hidden />
+        </label>
+        <button class="danger" id="resetBtn">Reset All</button>
+      </div>
+    </div><div class="grid">
+  <div class="card stats">
+    <div class="stat">
+      <h3>Sugar-Free Streak</h3>
+      <div class="value" id="streakValue">0</div>
+      <div class="note" id="streakNote">days since last sugar entry</div>
+    </div>
+    <div class="stat">
+      <h3>Today’s Sugar</h3>
+      <div class="value" id="todaySugarValue">0g</div>
+      <div class="note" id="todaySugarNote">based on today’s entries</div>
+    </div>
+    <div class="stat">
+      <h3>Weekly Exercise</h3>
+      <div class="value" id="weeklyExercise">0 min</div>
+      <div class="note">last 7 days</div>
+    </div>
+    <div class="stat">
+      <h3>Latest Weight</h3>
+      <div class="value" id="latestWeight">—</div>
+      <div class="note" id="weightNote">no weight logged yet</div>
+    </div>
+  </div>
+
+  <div class="card main">
+    <div class="section-title">
+      <h2>Log Today</h2>
+      <span>Add sugar, diet, exercise, or weight updates</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="diet">Diet</button>
+      <button class="tab" data-tab="exercise">Exercise</button>
+      <button class="tab" data-tab="weight">Weight</button>
+    </div>
+
+    <div id="formDiet" class="tabPanel">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="dietDate">Date</label>
+          <input id="dietDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="mealType">Meal Type</label>
+          <select id="mealType">
+            <option>Breakfast</option>
+            <option>Lunch</option>
+            <option>Dinner</option>
+            <option>Snack</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="sugarGrams">Sugar (g)</label>
+          <input id="sugarGrams" type="number" min="0" step="0.1" placeholder="e.g. 12" />
+        </div>
+        <div class="input-group full">
+          <label for="foodNotes">Food / Diet Notes</label>
+          <textarea id="foodNotes" placeholder="What did you eat? Any sugar cravings?"></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addDietBtn">Save Diet Entry</button>
+      </div>
+    </div>
+
+    <div id="formExercise" class="tabPanel" style="display:none">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="exerciseDate">Date</label>
+          <input id="exerciseDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="exerciseType">Exercise Type</label>
+          <input id="exerciseType" type="text" placeholder="Walk, gym, cycling..." />
+        </div>
+        <div class="input-group">
+          <label for="exerciseMinutes">Minutes</label>
+          <input id="exerciseMinutes" type="number" min="0" step="1" placeholder="e.g. 30" />
+        </div>
+        <div class="input-group full">
+          <label for="exerciseNotes">Exercise Notes</label>
+          <textarea id="exerciseNotes" placeholder="How intense was it? How did you feel?"></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addExerciseBtn">Save Exercise</button>
+      </div>
+    </div>
+
+    <div id="formWeight" class="tabPanel" style="display:none">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="weightDate">Date</label>
+          <input id="weightDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="weightValue">Weight</label>
+          <input id="weightValue" type="number" min="0" step="0.1" placeholder="e.g. 72.5" />
+        </div>
+        <div class="input-group">
+          <label for="weightUnit">Unit</label>
+          <select id="weightUnit">
+            <option value="kg">kg</option>
+            <option value="lb">lb</option>
+          </select>
+        </div>
+        <div class="input-group full">
+          <label for="weightNotes">Weight Notes</label>
+          <textarea id="weightNotes" placeholder="Morning weight, after workout, etc."></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addWeightBtn">Save Weight</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card side">
+    <div class="section-title">
+      <h2>Progress Overview</h2>
+      <span id="monthLabel"></span>
+    </div>
+    <div class="small" style="margin-bottom:10px">Sugar-free goal progress for the last 30 days</div>
+    <div class="progress"><div id="goalProgress" style="width:0%"></div></div>
+    <div class="small" style="margin-top:8px" id="goalText">0 / 30 sugar-free days</div>
+
+    <div style="margin-top:18px" class="section-title">
+      <h2>Weight Trend</h2>
+      <span>Last 7 entries</span>
+    </div>
+    <div class="chart-box" id="weightChart"></div>
+
+    <div style="margin-top:18px" class="section-title">
+      <h2>Recent Summary</h2>
+      <span>Last 5 logs</span>
+    </div>
+    <div class="list" id="recentSummary"></div>
+  </div>
+
+  <div class="card" style="grid-column:span 12">
+    <div class="section-title">
+      <h2>All Records</h2>
+      <span>Search, review, edit, or delete entries</span>
+    </div>
+    <div class="tabs" style="margin-bottom:16px">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="diet">Diet</button>
+      <button class="tab" data-filter="exercise">Exercise</button>
+      <button class="tab" data-filter="weight">Weight</button>
+    </div>
+    <div class="list" id="entriesList"></div>
+  </div>
+</div>
+
+<div class="footer-note">Data is saved only in this browser using localStorage. Use Export to back it up before clearing your browser.</div>
+
+  </div>  <script>
+    const STORAGE_KEY = "sugar_diet_tracker_v1";
+    const state = {
+      activeTab: "diet",
+      filter: "all",
+      data: loadData()
+    };
+
+    function todayISO(){
+      const d = new Date();
+      const off = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - off*60000);
+      return local.toISOString().slice(0,10);
+    }
+
+    function loadData(){
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { diet: [], exercise: [], weight: [] };
+      } catch {
+        return { diet: [], exercise: [], weight: [] };
+      }
+    }
+
+    function saveData(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+      renderAll();
+    }
+
+    function uid(){
+      return Math.random().toString(36).slice(2,9) + Date.now().toString(36);
+    }
+
+    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+    function getAllEntries(){
+      const all = [];
+      for (const item of state.data.diet) all.push({...item, kind:"diet"});
+      for (const item of state.data.exercise) all.push({...item, kind:"exercise"});
+      for (const item of state.data.weight) all.push({...item, kind:"weight"});
+      return all.sort((a,b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt||0) - (a.createdAt||0));
+    }
+
+    function daysBetween(a,b){
+      const da = new Date(a+"T00:00:00");
+      const db = new Date(b+"T00:00:00");
+      return Math.round((db - da) / 86400000);
+    }
+
+    function lastSugarDate(){
+      const sugarDates = state.data.diet.filter(x => Number(x.sugarGrams || 0) > 0).map(x => x.date).sort();
+      return sugarDates[sugarDates.length - 1] || null;
+    }
+
+    function sugarFreeStreak(){
+      const last = lastSugarDate();
+      if (!last) return Object.keys(groupByDateSugar()).length || 0;
+      return Math.max(0, daysBetween(last, todayISO()));
+    }
+
+    function groupByDateSugar(){
+      const m = {};
+      for (const e of state.data.diet){
+        m[e.date] = (m[e.date] || 0) + Number(e.sugarGrams || 0);
+      }
+      return m;
+    }
+
+    function weeklyExerciseMinutes(){
+      const t = new Date(todayISO()+"T00:00:00").getTime();
+      const weekAgo = t - 6*86400000;
+      return state.data.exercise.reduce((sum, e) => {
+        const ts = new Date(e.date+"T00:00:00").getTime();
+        if (ts >= weekAgo) sum += Number(e.minutes || 0);
+        return sum;
+      }, 0);
+    }
+
+    function latestWeight(){
+      const arr = [...state.data.weight].sort((a,b) => (b.date||"").localeCompare(a.date||"") || (b.createdAt||0)-(a.createdAt||0));
+      return arr[0] || null;
+    }
+
+    function sugarToday(){
+      const map = groupByDateSugar();
+      return Number(map[todayISO()] || 0);
+    }
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sugar Diet Tracker</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --panel2:#1f2937;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --border:#334155;
+      --chip:#0b1220;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,#020617 0%, #0f172a 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:24px;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+    h1{margin:0;font-size:clamp(28px,4vw,40px)}
+    .subtitle{color:var(--muted);margin-top:6px}
+    .top-actions{display:flex;gap:10px;flex-wrap:wrap}
+    button, input, select, textarea{
+      border:1px solid var(--border);
+      background:#0b1220;
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 14px;
+      font:inherit;
+      outline:none;
+    }
+    button{cursor:pointer}
+    button.primary{background:linear-gradient(135deg,#0ea5e9,#22c55e);border:none;color:#fff;font-weight:700}
+    button.danger{background:#3f1d1d;border-color:#7f1d1d}
+    button.ghost{background:transparent}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:16px;
+    }
+    .card{
+      background:rgba(17,24,39,.9);
+      border:1px solid var(--border);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.2);
+    }
+    .stats{grid-column:span 12; display:grid; grid-template-columns:repeat(4,1fr); gap:16px}
+    .stat h3{margin:0 0 8px 0;font-size:14px;color:var(--muted);font-weight:600}
+    .stat .value{font-size:28px;font-weight:800}
+    .stat .note{color:var(--muted);font-size:12px;margin-top:6px}
+    .main{grid-column:span 7}
+    .side{grid-column:span 5}
+    .section-title{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+      margin:0 0 14px 0;
+    }
+    .section-title h2{margin:0;font-size:20px}
+    .section-title span{color:var(--muted);font-size:13px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .form-grid .full{grid-column:1 / -1}
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px}
+    .input-group{display:flex;flex-direction:column}
+    textarea{min-height:88px;resize:vertical}
+    .row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px 0}
+    .tab{padding:10px 14px;border-radius:999px;background:#0b1220;border:1px solid var(--border);color:var(--muted)}
+    .tab.active{background:rgba(56,189,248,.15);color:#dff6ff;border-color:#1d4ed8}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .entry{
+      background:var(--panel2);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+    }
+    .entry-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .entry h4{margin:0 0 4px 0;font-size:16px}
+    .meta{color:var(--muted);font-size:12px}
+    .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .badge{padding:5px 9px;border-radius:999px;background:var(--chip);border:1px solid var(--border);font-size:12px;color:#cbd5e1}
+    .badge.good{border-color:#14532d;color:#bbf7d0}
+    .badge.warn{border-color:#78350f;color:#fde68a}
+    .badge.bad{border-color:#7f1d1d;color:#fecaca}
+    .entry-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .entry-actions button{padding:8px 10px;border-radius:10px;font-size:12px}
+    .chart-box{height:280px;display:flex;align-items:flex-end;gap:10px;padding:10px 0 0}
+    .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+    .bar{width:100%;max-width:46px;min-height:6px;border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,#38bdf8,#2563eb);transition:height .2s ease}
+    .bar-label{font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+    .small{font-size:12px;color:var(--muted)}
+    .progress{
+      width:100%;height:12px;border-radius:999px;background:#0b1220;border:1px solid var(--border);overflow:hidden;
+    }
+    .progress > div{height:100%;background:linear-gradient(90deg,#22c55e,#38bdf8)}
+    .footer-note{color:var(--muted);font-size:12px;margin-top:12px}
+    .empty{color:var(--muted);text-align:center;padding:22px;border:1px dashed var(--border);border-radius:18px}
+    @media (max-width: 950px){
+      .main,.side{grid-column:span 12}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width: 640px){
+      .wrap{padding:14px}
+      .stats{grid-template-columns:1fr}
+      .form-grid{grid-template-columns:1fr}
+      .chart-box{height:240px;gap:6px}
+      .bar{max-width:30px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1>Sugar Diet Tracker</h1>
+        <div class="subtitle">Track sugar-free streaks, meals, exercise, and weight in one place.</div>
+      </div>
+      <div class="top-actions">
+        <button class="ghost" id="exportBtn">Export Data</button>
+        <label for="importFile" style="margin:0">
+          <span class="ghost" style="display:inline-block;padding:12px 14px;border:1px solid var(--border);border-radius:14px;cursor:pointer;background:transparent">Import Data</span>
+          <input id="importFile" type="file" accept="application/json" hidden />
+        </label>
+        <button class="danger" id="resetBtn">Reset All</button>
+      </div>
+    </div><div class="grid">
+  <div class="card stats">
+    <div class="stat">
+      <h3>Sugar-Free Streak</h3>
+      <div class="value" id="streakValue">0</div>
+      <div class="note" id="streakNote">days since last sugar entry</div>
+    </div>
+    <div class="stat">
+      <h3>Today’s Sugar</h3>
+      <div class="value" id="todaySugarValue">0g</div>
+      <div class="note" id="todaySugarNote">based on today’s entries</div>
+    </div>
+    <div class="stat">
+      <h3>Weekly Exercise</h3>
+      <div class="value" id="weeklyExercise">0 min</div>
+      <div class="note">last 7 days</div>
+    </div>
+    <div class="stat">
+      <h3>Latest Weight</h3>
+      <div class="value" id="latestWeight">—</div>
+      <div class="note" id="weightNote">no weight logged yet</div>
+    </div>
+  </div>
+
+  <div class="card main">
+    <div class="section-title">
+      <h2>Log Today</h2>
+      <span>Add sugar, diet, exercise, or weight updates</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="diet">Diet</button>
+      <button class="tab" data-tab="exercise">Exercise</button>
+      <button class="tab" data-tab="weight">Weight</button>
+    </div>
+
+    <div id="formDiet" class="tabPanel">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="dietDate">Date</label>
+          <input id="dietDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="mealType">Meal Type</label>
+          <select id="mealType">
+            <option>Breakfast</option>
+            <option>Lunch</option>
+            <option>Dinner</option>
+            <option>Snack</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="sugarGrams">Sugar (g)</label>
+          <input id="sugarGrams" type="number" min="0" step="0.1" placeholder="e.g. 12" />
+        </div>
+        <div class="input-group full">
+          <label for="foodNotes">Food / Diet Notes</label>
+          <textarea id="foodNotes" placeholder="What did you eat? Any sugar cravings?"></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addDietBtn">Save Diet Entry</button>
+      </div>
+    </div>
+
+    <div id="formExercise" class="tabPanel" style="display:none">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="exerciseDate">Date</label>
+          <input id="exerciseDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="exerciseType">Exercise Type</label>
+          <input id="exerciseType" type="text" placeholder="Walk, gym, cycling..." />
+        </div>
+        <div class="input-group">
+          <label for="exerciseMinutes">Minutes</label>
+          <input id="exerciseMinutes" type="number" min="0" step="1" placeholder="e.g. 30" />
+        </div>
+        <div class="input-group full">
+          <label for="exerciseNotes">Exercise Notes</label>
+          <textarea id="exerciseNotes" placeholder="How intense was it? How did you feel?"></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addExerciseBtn">Save Exercise</button>
+      </div>
+    </div>
+
+    <div id="formWeight" class="tabPanel" style="display:none">
+      <div class="form-grid">
+        <div class="input-group full">
+          <label for="weightDate">Date</label>
+          <input id="weightDate" type="date" />
+        </div>
+        <div class="input-group">
+          <label for="weightValue">Weight</label>
+          <input id="weightValue" type="number" min="0" step="0.1" placeholder="e.g. 72.5" />
+        </div>
+        <div class="input-group">
+          <label for="weightUnit">Unit</label>
+          <select id="weightUnit">
+            <option value="kg">kg</option>
+            <option value="lb">lb</option>
+          </select>
+        </div>
+        <div class="input-group full">
+          <label for="weightNotes">Weight Notes</label>
+          <textarea id="weightNotes" placeholder="Morning weight, after workout, etc."></textarea>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="primary" id="addWeightBtn">Save Weight</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card side">
+    <div class="section-title">
+      <h2>Progress Overview</h2>
+      <span id="monthLabel"></span>
+    </div>
+    <div class="small" style="margin-bottom:10px">Sugar-free goal progress for the last 30 days</div>
+    <div class="progress"><div id="goalProgress" style="width:0%"></div></div>
+    <div class="small" style="margin-top:8px" id="goalText">0 / 30 sugar-free days</div>
+
+    <div style="margin-top:18px" class="section-title">
+      <h2>Weight Trend</h2>
+      <span>Last 7 entries</span>
+    </div>
+    <div class="chart-box" id="weightChart"></div>
+
+    <div style="margin-top:18px" class="section-title">
+      <h2>Recent Summary</h2>
+      <span>Last 5 logs</span>
+    </div>
+    <div class="list" id="recentSummary"></div>
+  </div>
+
+  <div class="card" style="grid-column:span 12">
+    <div class="section-title">
+      <h2>All Records</h2>
+      <span>Search, review, edit, or delete entries</span>
+    </div>
+    <div class="tabs" style="margin-bottom:16px">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="diet">Diet</button>
+      <button class="tab" data-filter="exercise">Exercise</button>
+      <button class="tab" data-filter="weight">Weight</button>
+    </div>
+    <div class="list" id="entriesList"></div>
+  </div>
+</div>
+
+<div class="footer-note">Data is saved only in this browser using localStorage. Use Export to back it up before clearing your browser.</div>
+
+  </div>  <script>
+    const STORAGE_KEY = "sugar_diet_tracker_v1";
+    const state = {
+      activeTab: "diet",
+      filter: "all",
+      data: loadData()
+    };
+
+    function todayISO(){
+      const d = new Date();
+      const off = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - off*60000);
+      return local.toISOString().slice(0,10);
+    }
+
+    function loadData(){
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { diet: [], exercise: [], weight: [] };
+      } catch {
+        return { diet: [], exercise: [], weight: [] };
+      }
+    }
+
+    function saveData(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+      renderAll();
+    }
+
+    function uid(){
+      return Math.random().toString(36).slice(2,9) + Date.now().toString(36);
+    }
+
+    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+    function getAllEntries(){
+      const all = [];
+      for (const item of state.data.diet) all.push({...item, kind:"diet"});
+      for (const item of state.data.exercise) all.push({...item, kind:"exercise"});
+      for (const item of state.data.weight) all.push({...item, kind:"weight"});
+      return all.sort((a,b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt||0) - (a.createdAt||0));
+    }
+
+    function daysBetween(a,b){
+      const da = new Date(a+"T00:00:00");
+      const db = new Date(b+"T00:00:00");
+      return Math.round((db - da) / 86400000);
+    }
+
+    function lastSugarDate(){
+      const sugarDates = state.data.diet.filter(x => Number(x.sugarGrams || 0) > 0).map(x => x.date).sort();
+      return sugarDates[sugarDates.length - 1] || null;
+    }
+
+    function sugarFreeStreak(){
+      const last = lastSugarDate();
+      if (!last) return Object.keys(groupByDateSugar()).length || 0;
+      return Math.max(0, daysBetween(last, todayISO()));
+    }
+
+    function groupByDateSugar(){
+      const m = {};
+      for (const e of state.data.diet){
+        m[e.date] = (m[e.date] || 0) + Number(e.sugarGrams || 0);
+      }
+      return m;
+    }
+
+    function weeklyExerciseMinutes(){
+      const t = new Date(todayISO()+"T00:00:00").getTime();
+      const weekAgo = t - 6*86400000;
+      return state.data.exercise.reduce((sum, e) => {
+        const ts = new Date(e.date+"T00:00:00").getTime();
+        if (ts >= weekAgo) sum += Number(e.minutes || 0);
+        return sum;
+      }, 0);
+    }
+
+    function latestWeight(){
+      const arr = [...state.data.weight].sort((a,b) => (b.date||"").localeCompare(a.date||"") || (b.createdAt||0)-(a.createdAt||0));
+      return arr[0] || null;
+    }
+
+    function sugarToday(){
+      const map = groupByDateSugar();
+      return Number(map[todayISO()] || 0);
+    }
+
+    function renderStats(){
+      const streak = sugarFreeStreak();
+      document.getElementById("streakValue").textContent = streak;
+      document.getElementById("streakNote").textContent = streak === 1 ? "day since last sugar entry" : "days since last sugar entry";
+      document.getElementById("todaySugarValue").textContent = sugarToday().toFixed(1).replace(/\.0$/,'') + "g";
+      document.getElementById("weeklyExercise").textContent = weeklyExerciseMinutes() + " min";
+      const w = latestWeight();
+      document.getElementById("latestWeight").textContent = w ? `${w.value} ${w.unit}` : "—";
+      document.getElementById("weightNote").textContent = w ? `logged on ${w.date}` : "no weight logged yet";
+
+      const sugarFreeDays = getSugarFreeDaysLast30();
+      const pct = Math.round((sugarFreeDays / 30) * 100);
+      document.getElementById("goalProgress").style.width = pct + "%";
+      document.getElementById("goalText").textContent = `${sugarFreeDays} / 30 sugar-free days`;
+      document.getElementById("monthLabel").textContent = new Date().toLocaleString(undefined, { month:"long", year:"numeric" });
+    }
+
+    function getSugarFreeDaysLast30(){
+      const map = groupByDateSugar();
+      let count = 0;
+      for (let i=0;i<30;i++){
+        const d = new Date();
+        d.setDate(d.getDate()-i);
+        const key = d.toISOString().slice(0,10);
+        if (!(Number(map[key] || 0) > 0)) count++;
+      }
+      return count;
+    }
+
+    function renderChart(){
+      const box = document.getElementById("weightChart");
+      box.innerHTML = "";
+      const arr = [...state.data.weight].sort((a,b) => (a.date||"").localeCompare(b.date||"") || (a.createdAt||0)-(b.createdAt||0)).slice(-7);
+      if (!arr.length){
+        box.innerHTML = '<div class="empty" style="width:100%">No weight entries yet</div>';
+        return;
+      }
+      const values = arr.map(x => Number(x.value)).filter(v => !Number.isNaN(v));
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = Math.max(max - min, 1);
+      arr.forEach(item => {
+        const val = Number(item.value);
+        const h = 24 + ((val - min) / range) * 160;
+        const wrap = document.createElement("div");
+        wrap.className = "bar-wrap";
+        wrap.innerHTML = `<div class="bar" style="height:${h}px" title="${item.date}: ${item.value} ${item.unit}"></div><div class="bar-label">${item.date.slice(5)}</div><div class="bar-label" style="color:#fff">${item.value} ${item.unit}</div>`;
+        box.appendChild(wrap);
+      });
+    }
+
+    function renderRecent(){
+      const list = document.getElementById("recentSummary");
+      list.innerHTML = "";
+      const items = getAllEntries().slice(0,5);
+      if (!items.length){
+        list.innerHTML = '<div class="empty">No logs yet</div>';
+        return;
+      }
+      for (const e of items){
+        const el = document.createElement("div");
+        el.className = "entry";
+        const title = e.kind === 'diet' ? `${e.mealType || 'Diet'} • ${e.sugarGrams || 0}g sugar` : e.kind === 'exercise' ? `${e.exerciseType || 'Exercise'} • ${e.minutes || 0} min` : `Weight • ${e.value} ${e.unit}`;
+        const detail = e.kind === 'diet' ? (e.notes || 'No notes') : e.kind === 'exercise' ? (e.notes || 'No notes') : (e.notes || 'No notes');
+        el.innerHTML = `<h4>${title}</h4><div class="meta">${e.date}</div><div class="meta" style="margin-top:6px">${escapeHtml(detail)}</div>`;
+        list.appendChild(el);
+      }
+    }
+
+    function renderEntries(){
+      const list = document.getElementById("entriesList");
+      list.innerHTML = "";
+      const items = getAllEntries().filter(e => state.filter === 'all' ? true : e.kind === state.filter);
+      if (!items.length){
+        list.innerHTML = '<div class="empty">No entries for this category</div>';
+        return;
+      }
+      items.forEach(e => {
+        const el = document.createElement("div");
+        el.className = "entry";
+        let badgeClass = e.kind === 'diet' ? (Number(e.sugarGrams || 0) > 15 ? 'warn' : 'good') : e.kind === 'exercise' ? 'good' : 'badge';
+        let headline = '';
+        let meta = '';
+        let badges = '';
+        if (e.kind === 'diet'){
+          headline = `${e.mealType || 'Diet'} • ${e.sugarGrams || 0}g sugar`;
+          meta = e.notes || 'No notes';
+          badges = `<span class="badge ${badgeClass}">${Number(e.sugarGrams || 0) > 15 ? 'High sugar' : 'Controlled sugar'}</span>`;
+        } else if (e.kind === 'exercise'){
+          headline = `${e.exerciseType || 'Exercise'} • ${e.minutes || 0} minutes`;
+          meta = e.notes || 'No notes';
+          badges = `<span class="badge good">Exercise logged</span>`;
+        } else {
+          headline = `Weight • ${e.value} ${e.unit}`;
+          meta = e.notes || 'No notes';
+          badges = `<span class="badge">Weight check</span>`;
+        }
+        el.innerHTML = `
+          <div class="entry-top">
+            <div>
+              <h4>${escapeHtml(headline)}</h4>
+              <div class="meta">${e.date} ${e.createdAt ? '• ' + new Date(e.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</div>
+              <div class="badges">${badges}</div>
+              <div class="meta" style="margin-top:8px">${escapeHtml(meta)}</div>
+            </div>
+            <div class="entry-actions">
+              <button onclick="editEntry('${e.kind}','${e.id}')">Edit</button>
+              <button class="danger" onclick="deleteEntry('${e.kind}','${e.id}')">Delete</button>
+            </div>
+        </
