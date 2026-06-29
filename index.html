@@ -1,43 +1,316 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SugarTracker V2</title>
-<link rel="stylesheet" href="style.css">
-</head><body>
-<div class="container">
-<h1>SugarTracker V2</h1>
-<div class="cards">
-<div class="card"><h3>Sugar-Free Streak</h3><div id="streak">0</div></div>
-<div class="card"><h3>Latest Weight</h3><div id="latestWeight">-</div></div>
-<div class="card"><h3>Weekly Exercise</h3><div id="weeklyExercise">0 min</div></div>
-</div>
+<html lang="en">
 
-<form id="dietForm">
-<h2>Diet</h2>
-<input type="date" id="dietDate" required>
-<input type="text" id="meal" placeholder="Meal">
-<input type="number" id="sugar" placeholder="Sugar (g)" min="0">
-<textarea id="dietNotes" placeholder="Notes"></textarea>
-<button type="submit">Save Diet</button>
-</form>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SugarTracker V2</title>
 
-<form id="exerciseForm">
-<h2>Exercise</h2>
-<input type="date" id="exerciseDate" required>
-<input type="text" id="exerciseType" placeholder="Exercise">
-<input type="number" id="minutes" placeholder="Minutes">
-<button type="submit">Save Exercise</button>
-</form>
+    <link rel="stylesheet" href="styles.css">
+</head>
 
-<form id="weightForm">
-<h2>Weight</h2>
-<input type="date" id="weightDate" required>
-<input type="number" step="0.1" id="weight" placeholder="Weight (kg)">
-<button type="submit">Save Weight</button>
-</form>
+<body>
 
-<h2>History</h2>
-<div id="history"></div>
-</div>
-<script src="script.js"></script>
-</body></html>
+    <!-- Splash Loader -->
+    <div id="loader">
+        <h1>SugarTracker</h1>
+        <p>Loading...</p>
+    </div>
+
+    <div id="app">
+
+        <!-- Header -->
+
+        <header>
+
+            <div>
+                <h1>SugarTracker V2</h1>
+                <p>Your Personal Health Dashboard</p>
+            </div>
+
+            <button id="themeBtn">
+                🌙
+            </button>
+
+        </header>
+
+        <!-- Dashboard -->
+
+        <section class="dashboard">
+
+            <div class="card">
+                <h3>Sugar-Free Streak</h3>
+                <h1 id="streakDays">0</h1>
+                <p>Days</p>
+            </div>
+
+            <div class="card">
+                <h3>Today's Sugar</h3>
+                <h1 id="todaySugar">0 g</h1>
+            </div>
+
+            <div class="card">
+                <h3>Current Weight</h3>
+                <h1 id="currentWeight">--</h1>
+            </div>
+
+            <div class="card">
+                <h3>BMI</h3>
+                <h1 id="bmi">--</h1>
+            </div>
+
+            <div class="card">
+                <h3>Water</h3>
+                <h1 id="waterCount">0 / 8</h1>
+            </div>
+
+            <div class="card">
+                <h3>Exercise</h3>
+                <h1 id="exerciseMinutes">0 min</h1>
+            </div>
+
+        </section>
+
+        <!-- Navigation -->
+
+        <nav>
+
+            <button class="nav active" data-page="dashboardPage">
+                Dashboard
+            </button>
+
+            <button class="nav" data-page="dietPage">
+                Diet
+            </button>
+
+            <button class="nav" data-page="exercisePage">
+                Exercise
+            </button>
+
+            <button class="nav" data-page="weightPage">
+                Weight
+            </button>
+
+            <button class="nav" data-page="historyPage">
+                History
+            </button>
+
+            <button class="nav" data-page="settingsPage">
+                Settings
+            </button>
+
+        </nav>
+
+        <!-- Dashboard -->
+
+        <main>
+
+            <section id="dashboardPage" class="page active">
+
+                <div class="section">
+
+                    <h2>Today's Progress</h2>
+
+                    <div class="progressBox">
+
+                        <label>Sugar Goal</label>
+
+                        <progress id="sugarProgress" value="0" max="100"></progress>
+
+                        <span id="sugarProgressText">0%</span>
+
+                    </div>
+
+                    <div class="progressBox">
+
+                        <label>Exercise Goal</label>
+
+                        <progress id="exerciseProgress" value="0" max="100"></progress>
+
+                        <span id="exerciseProgressText">0%</span>
+
+                    </div>
+
+                    <div class="progressBox">
+
+                        <label>Water Goal</label>
+
+                        <progress id="waterProgress" value="0" max="8"></progress>
+
+                        <span id="waterProgressText">0 / 8</span>
+
+                    </div>
+
+                </div>
+
+                <div class="section">
+
+                    <h2>Weight Progress</h2>
+
+                    <canvas id="weightChart"></canvas>
+
+                </div>
+
+            </section>
+
+            <!-- Diet -->
+
+            <section id="dietPage" class="page">
+
+                <h2>Add Diet</h2>
+
+                <form id="dietForm">
+
+                    <input type="date" id="dietDate">
+
+                    <input type="text"
+                        id="foodName"
+                        placeholder="Food Name"
+                        required>
+
+                    <input type="number"
+                        id="calories"
+                        placeholder="Calories">
+
+                    <input type="number"
+                        id="sugar"
+                        placeholder="Sugar (g)">
+
+                    <textarea id="dietNotes"
+                        placeholder="Notes"></textarea>
+
+                    <button type="submit">
+                        Save Diet
+                    </button>
+
+                </form>
+
+            </section>
+
+            <!-- Exercise -->
+
+            <section id="exercisePage" class="page">
+
+                <h2>Add Exercise</h2>
+
+                <form id="exerciseForm">
+
+                    <input type="date" id="exerciseDate">
+
+                    <input type="text"
+                        id="exerciseName"
+                        placeholder="Exercise">
+
+                    <input type="number"
+                        id="duration"
+                        placeholder="Minutes">
+
+                    <input type="number"
+                        id="caloriesBurned"
+                        placeholder="Calories Burned">
+
+                    <button type="submit">
+                        Save Exercise
+                    </button>
+
+                </form>
+
+            </section>
+
+            <!-- Weight -->
+
+            <section id="weightPage" class="page">
+
+                <h2>Weight Tracker</h2>
+
+                <form id="weightForm">
+
+                    <input type="date" id="weightDate">
+
+                    <input type="number"
+                        id="weight"
+                        step="0.1"
+                        placeholder="Weight">
+
+                    <input type="number"
+                        id="height"
+                        step="0.01"
+                        placeholder="Height (m)">
+
+                    <button type="submit">
+                        Save Weight
+                    </button>
+
+                </form>
+
+            </section>
+
+            <!-- History -->
+
+            <section id="historyPage" class="page">
+
+                <div class="section">
+
+                    <input
+                        type="text"
+                        id="search"
+                        placeholder="Search...">
+
+                    <select id="filter">
+
+                        <option value="all">All</option>
+                        <option value="diet">Diet</option>
+                        <option value="exercise">Exercise</option>
+                        <option value="weight">Weight</option>
+
+                    </select>
+
+                </div>
+
+                <div id="historyList">
+
+                </div>
+
+            </section>
+
+            <!-- Settings -->
+
+            <section id="settingsPage" class="page">
+
+                <h2>Settings</h2>
+
+                <button id="exportData">
+                    Export Data
+                </button>
+
+                <input
+                    type="file"
+                    id="importData"
+                    accept=".json">
+
+                <button id="clearData"
+                    class="danger">
+
+                    Clear All Data
+
+                </button>
+
+            </section>
+
+        </main>
+
+        <!-- Floating Action Button -->
+
+        <button id="fab">
+
+            +
+
+        </button>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
